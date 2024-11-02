@@ -1,7 +1,9 @@
+import org.gradle.internal.jvm.Jvm
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "net.darkmeow"
-version = "1.0"
+version = "1.0.1102"
 
 plugins {
     kotlin("jvm")
@@ -50,7 +52,7 @@ java {
 
 tasks {
     withType(KotlinCompile::class.java) {
-        kotlinOptions.jvmTarget = "1.8"
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
     }
 
     jar {
@@ -90,7 +92,7 @@ publishing {
             from(components["java"])
             groupId = "net.darkmeow"
             artifactId = "jar-optimizer"
-            version = "1.0"
+            version = "1.0.1102"
         }
     }
     repositories {
