@@ -1,4 +1,4 @@
-package net.darkmeow.jaroptimizer
+package net.darkmeow.jar_optimizer
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

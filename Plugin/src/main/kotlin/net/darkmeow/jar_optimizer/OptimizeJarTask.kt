@@ -1,4 +1,4 @@
-package net.darkmeow.jaroptimizer
+package net.darkmeow.jar_optimizer
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.file.RegularFileProperty

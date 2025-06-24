@@ -1,5 +1,7 @@
 rootProject.name = "jar-optimizer"
 
+include(":Core", ":Plugin")
+
 pluginManagement {
     repositories {
         gradlePluginPortal()

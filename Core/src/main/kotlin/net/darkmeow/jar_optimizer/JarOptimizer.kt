@@ -1,9 +1,8 @@
-package net.darkmeow.jaroptimizer
+package net.darkmeow.jar_optimizer
 
 import it.unimi.dsi.fastutil.objects.*
 import org.apache.bcel.Const
 import org.apache.bcel.classfile.*
-import org.apache.bcel.util.SyntheticRepository
 import java.io.DataInputStream
 import java.io.File
 import java.io.InputStream
@@ -152,43 +151,4 @@ class JarOptimizer {
     }
 
     private class ClassFile(val path: String, val classPath: String, val bytes: ByteArray)
-
-    companion object {
-        init {
-            SyntheticRepository.getInstance()
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            var input: String? = null
-            var output: String? = null
-            val keeps = ObjectOpenHashSet<String>()
-
-            var i = 0
-            while (i < args.size) {
-                when (args[i++]) {
-                    "-i", "-in", "-input" -> input = args[i++]
-                    "-o", "-out", "-output" -> output = args[i++]
-                    "-k", "-keep" -> keeps += args[i++]
-                }
-            }
-
-            if (input == null) {
-                println("Input file not specified")
-                return
-            }
-
-            if (output == null) {
-                println("Output file not specified")
-                return
-            }
-
-            if (keeps.isEmpty()) {
-                println("No classes to keep specified")
-                return
-            }
-
-            JarOptimizer().optimize(File(input), File(output), keeps)
-        }
-    }
 }

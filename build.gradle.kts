@@ -1,100 +1,84 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-group = "net.darkmeow"
-version = "1.0.1113"
+val baseGroup: String by project
+val baseVersion: String by project
+
+val fastutilVersion: String by project
+val cliVersion: String by project
+
+group = baseGroup
+version = baseVersion
 
 plugins {
     kotlin("jvm")
-    `java-gradle-plugin`
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     `maven-publish`
 }
 
-gradlePlugin {
-    plugins {
-        create("jar-optimizer") {
-            id = "net.darkmeow.jar-optimizer"
-            displayName = "Jar Optimizer"
-            description = "Simple jar file optimizing tool"
-            implementationClass = "net.darkmeow.jaroptimizer.JarOptimizerPlugin"
+allprojects {
+    group = baseGroup
+    version = baseVersion
+
+    apply(plugin = "kotlin")
+    apply(plugin = "maven-publish")
+
+    repositories {
+        mavenCentral()
+    }
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(8))
         }
     }
-}
 
-repositories {
-    mavenCentral()
-}
-
-val library: Configuration by configurations.creating {
-    configurations.implementation.get().extendsFrom(this)
-}
-
-val pluginSourceSet = sourceSets.create("plugin").apply {
-    java.srcDir("src/plugin/kotlin")
-    resources.srcDir("src/plugin/resources")
-    compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().runtimeClasspath + sourceSets.main.get().output
-}
-
-dependencies {
-    library("it.unimi.dsi:fastutil:8.5.13")
-    library("org.apache.bcel:bcel:6.8.1")
-    library(kotlin("stdlib-jdk8"))
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
-    withSourcesJar()
-}
-
-tasks {
-    withType(KotlinCompile::class.java) {
+    tasks.withType(KotlinCompile::class.java) {
         compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
     }
 
-    jar {
-        from(pluginSourceSet.output)
-    }
-
-    named<Jar>("sourcesJar") {
-        from(pluginSourceSet.allSource)
-    }
-
-    val standaloneJar by register<Jar>("standaloneJar") {
-        group = "build"
-
-        manifest {
-            attributes(
-                "Main-Class" to "net.darkmeow.jaroptimizer.JarOptimizer",
-            )
+    publishing {
+        val mavenAuth = System.getenv("MAVEN_USERNAME")?.let { username ->
+            System.getenv("MAVEN_PASSWORD")?.let { password ->
+                username to password
+            }
         }
 
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        repositories {
+            mavenLocal()
 
-        archiveClassifier.set("standalone")
+            mavenAuth?.also { auth ->
+                maven {
+                    url = uri("https://nekocurit.asia/repository/release/")
 
-        from(sourceSets.main.get().output)
-        from(library.elements.map { set -> set.map { it.asFile }.map { if (it.isDirectory) it else zipTree(it) } })
-    }
-
-    artifacts {
-        archives(standaloneJar)
+                    credentials {
+                        username = auth.first
+                        password = auth.second
+                    }
+                }
+            }
+        }
     }
 }
 
+dependencies {
+    implementation(project(":Core"))
+    implementation("it.unimi.dsi:fastutil:${fastutilVersion}")
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:$cliVersion")
+}
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            groupId = "net.darkmeow"
-            artifactId = "jar-optimizer"
-            version = "1.0.1113"
+
+tasks {
+    shadowJar {
+        archiveClassifier.set("")
+
+        manifest {
+            attributes("Main-Class" to "net.darkmeow.jar_optimizer.JarOptimizerLoader",)
         }
+
+        minimize()
     }
-    repositories {
-        mavenLocal()
+    build {
+        dependsOn(shadowJar)
     }
 }
